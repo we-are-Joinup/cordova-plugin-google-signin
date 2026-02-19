@@ -17,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.api.identity.BeginSignInRequest;
 import com.google.android.gms.auth.api.identity.BeginSignInResult;
 import com.google.android.gms.auth.api.identity.Identity;
@@ -26,6 +27,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -218,17 +220,21 @@ public class GoogleSignInPlugin extends CordovaPlugin {
     }
 
     private void authWithGoogle(GoogleSignInAccount account) {
-        try {
-            JSONObject userInfo = new JSONObject();
-            userInfo.put("id", account.getId());
-            userInfo.put("display_name", account.getDisplayName());
-            userInfo.put("email", account.getEmail());
-            userInfo.put("photo_url", account.getPhotoUrl());
-            userInfo.put("id_token", account.getIdToken());
-            mCallbackContext.success(getSuccessMessageForOneTapLogin(userInfo));
-        } catch (Exception ex) {
-            mCallbackContext.error(getErrorMessageInJsonString(ex.getMessage()));
-        }
+        new Thread(() -> {
+            try {
+                String token = GoogleAuthUtil.getToken(mContext, account.getAccount(),  "oauth2:" + Scopes.EMAIL);
+                JSONObject userInfo = new JSONObject();
+                userInfo.put("id", account.getId());
+                userInfo.put("display_name", account.getDisplayName());
+                userInfo.put("email", account.getEmail());
+                userInfo.put("photo_url", account.getPhotoUrl());
+                userInfo.put("id_token", account.getIdToken());
+                userInfo.put("access_token", token);
+                mCallbackContext.success(getSuccessMessageForOneTapLogin(userInfo));
+            } catch (Exception ex) {
+                mCallbackContext.error(getErrorMessageInJsonString(ex.getMessage()));
+            }
+        }).start();
     }
 
     private void firebaseAuthWithGoogle(String googleIdToken) {

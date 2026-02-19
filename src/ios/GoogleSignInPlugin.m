@@ -79,11 +79,15 @@
             
             // SDK 7.x: idToken is now directly on user, and we need .tokenString
             NSString *idToken = user.idToken.tokenString;
+            NSString *accessToken = user.accessToken.tokenString;
+            NSString *refreshToken = user.refreshToken.tokenString;
             
             NSDictionary *resultDict = @{
                            @"email"            : email ?: [NSNull null],
                            @"id"               : userId ?: [NSNull null],
                            @"id_token"         : idToken ?: [NSNull null],
+                           @"access_token"     : accessToken ?: [NSNull null],
+                           @"refresh_token"    : refreshToken ?: [NSNull null],
                            @"display_name"     : user.profile.name ?: [NSNull null],
                            @"given_name"       : user.profile.givenName ?: [NSNull null],
                            @"family_name"      : user.profile.familyName ?: [NSNull null],
